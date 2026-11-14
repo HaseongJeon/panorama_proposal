@@ -15,6 +15,7 @@ html,body{height:100%;background:#E9ECF1;overflow:hidden;font-family:-apple-syst
 .prev{left:16px}.next{right:16px}
 @media (hover:hover) and (pointer:fine){.nav{display:flex}}
 .fs{position:fixed;top:calc(10px + env(safe-area-inset-top));right:10px;padding:7px 9px 6px;border-radius:12px;border:0;background:rgba(255,255,255,.94);box-shadow:0 2px 10px rgba(17,20,24,.15);display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:#111418;z-index:5;font-family:inherit}
+.fs{transition:opacity .45s ease}.fs.hide{opacity:0;pointer-events:none}
 .fs .lb{font-size:10.5px;font-weight:700;letter-spacing:-0.2px;white-space:nowrap;line-height:1}
 .fs .ex{display:none}
 body.full .fs .en{display:none}body.full .fs .ex{display:block}
@@ -42,7 +43,12 @@ const req=de.requestFullscreen||de.webkitRequestFullscreen;const ex=document.exi
 const isFs=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
 let idx=0;t.addEventListener('scroll',()=>{idx=cur();},{passive:true});
 const keep=()=>{requestAnimationFrame(()=>{t.scrollLeft=idx*t.clientWidth;});};
-const setFull=on=>{document.body.classList.toggle('full',on);fsb.setAttribute('aria-label',on?'전체 화면 끄기':'전체 화면 보기');document.getElementById('fsl').textContent=on?'전체 화면 끄기':'전체 화면 보기';keep();};
+const setFull=on=>{document.body.classList.toggle('full',on);clearTimeout(window.__ht);fsb.classList.remove('hide');if(on){window.__ht=setTimeout(()=>{if(document.body.classList.contains('full'))fsb.classList.add('hide');},1500);}fsb.setAttribute('aria-label',on?'전체 화면 끄기':'전체 화면 보기');document.getElementById('fsl').textContent=on?'전체 화면 끄기':'전체 화면 보기';keep();};
+
+let hideT;const hideSoon=(ms)=>{clearTimeout(hideT);if(!document.body.classList.contains('full'))return;hideT=setTimeout(()=>{if(document.body.classList.contains('full'))fsb.classList.add('hide');},ms);};
+const showBtn=()=>{fsb.classList.remove('hide');hideSoon(2500);};
+t.addEventListener('click',()=>{if(document.body.classList.contains('full'))showBtn();});
+const _setFull=setFull;
 fsb.onclick=async()=>{const i=idx;
  if(req){try{if(isFs()){await ex.call(document);}else{await req.call(de);}}catch(e){setFull(!document.body.classList.contains('full'));}}
  else{setFull(!document.body.classList.contains('full'));}
